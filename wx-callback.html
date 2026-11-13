@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>正在识别 · Verifying</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:#0b0b0c;color:#c9a35f;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .b{text-align:center;padding:24px}
+  .b p{font-size:14px;letter-spacing:.14em;margin:0}
+  .b small{display:block;margin-top:10px;font-size:11px;opacity:.5;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="b">
+  <p>正在为您打开名片…</p>
+  <small>Redirecting to the digital business card</small>
+</div>
+<script>
+/* 微信身份回调中转页
+   流程：微信授权后带着 code 跳到本页 → 把 code 转发给 Apps Script 换身份写入表格
+        → 立刻跳回名片页（带上客户 TAG 与 wxid=1 标记，避免反复弹授权）
+   注意：必须部署在已备案且在公众号后台配置为「网页授权域名」的站点根目录下，
+        本页地址形如 https://hashoer.com/hashoer-charly-card/wx-callback.html */
+(function(){
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbzjO96-rI3T723CN8Wq_vqrr1sj8a8AZOB9vQaAeBqlUliwh1QDSj0O6GKsH64BE5ar/exec";
+  function q(k){
+    var m = new RegExp("[?&]"+k+"=([^&#]*)").exec(location.search);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  var code = q("code"), tag = q("state") || q("c") || "";
+  if (code) {
+    /* 用图片请求把 code 送出去：不受跨域限制，无需等待返回 */
+    new Image().src = ENDPOINT
+      + "?mode=wxid&code=" + encodeURIComponent(code)
+      + "&tag=" + encodeURIComponent(tag)
+      + "&ua=" + encodeURIComponent(navigator.userAgent.slice(0, 200));
+  }
+  var back = "./?" + (tag ? "c=" + encodeURIComponent(tag) + "&" : "") + "wxid=1";
+  setTimeout(function(){ location.replace(back); }, 900);
+})();
+</script>
+</body>
+</html>
